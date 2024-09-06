@@ -10,7 +10,7 @@ export const Validation = (type: new () => object) => {
     const originalMethod = descriptor.value;
 
     // eslint-disable-next-line unused-imports/no-unused-vars
-    descriptor.value = async function (req: Request, res: Response, _next: NextFunction) {
+    descriptor.value = async function (req: Request, res: Response, next: NextFunction) {
       const object = plainToInstance(type, req.body);
       const errors = await validate(object);
 
@@ -33,7 +33,7 @@ export const Validation = (type: new () => object) => {
           details.push(clientErrorDetails);
         }
 
-        throw new BadRequestException({ details });
+        next(new BadRequestException({ details: details }));
       } else {
         // eslint-disable-next-line prefer-rest-params
         originalMethod.apply(this, arguments);

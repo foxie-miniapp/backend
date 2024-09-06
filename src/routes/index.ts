@@ -1,6 +1,5 @@
-import { Express } from 'express';
+import { Express, Router } from 'express';
 
-import authorizationMiddleware from '../shared/middlewares/authorization.middleware';
 import filterExceptionMiddleware from '../shared/middlewares/filter-exception.middleware';
 import loggerMiddleware from '../shared/middlewares/logger.middleware';
 import notFoundMiddleware from '../shared/middlewares/not-found.middleware';
@@ -10,9 +9,13 @@ import users from './users.r';
 
 const initRoutes = (app: Express) => {
   app.use(loggerMiddleware);
-  app.use(authorizationMiddleware);
-  app.use('/auth', auth);
-  app.use('/users', users);
+
+  const v1Router = Router();
+
+  v1Router.use('/auth', auth);
+  v1Router.use('/users', users);
+
+  app.use('/api/v1', v1Router);
   app.use('*', notFoundMiddleware);
   app.use(filterExceptionMiddleware);
 };

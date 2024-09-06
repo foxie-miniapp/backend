@@ -1,41 +1,61 @@
 import User from 'src/database/entities/user.entity';
+import { generateReferralCode } from 'src/helpers/referral.helper';
+import { verifyTelegramId } from 'src/helpers/telegram.helper';
+import { Validation } from 'src/shared/decorators/validation-pipe.decorator';
+import { CreateCredentialsDto } from 'src/shared/dtos/auth/create-credentials.dto';
+import { BadRequestException } from 'src/shared/exceptions';
 import { HttpStatus } from 'src/shared/exceptions/enums/http-status.enum';
 import { signToken } from 'src/utils/jwt';
 import { NextFunction, Request, Response } from 'express';
 
-import { BadRequestException } from '../shared/exceptions';
-import { compareHash } from '../utils/bcrypt';
 import logger from '../utils/logger';
 
 class AuthController {
+  @Validation(CreateCredentialsDto)
   async login(req: Request, res: Response, next: NextFunction) {
     try {
-      const { email, password } = req.body;
-      if (!email || !password) {
-        throw new BadRequestException({
-          details: [{ issue: 'Body must contain {email, password}' }],
-        });
+      const dto = req.body as CreateCredentialsDto;
+      const isValidTelegramId = await verifyTelegramId(dto.telegramId);
+
+      if (!isValidTelegramId) {
+        next(new BadRequestException({ details: [{ issue: 'Invalid telegram id' }] }));
       }
 
-      const user = await User.findOne({ email }).select('+password');
+      let user = await User.findOne({ telegramId: dto.telegramId });
 
       if (!user) {
-        const newUser = new User({ email, password });
-        await newUser.save();
-      }
-
-      const isCorrectPassword = compareHash(password, user.password);
-      if (!isCorrectPassword) {
-        throw new BadRequestException({
-          details: [{ issue: 'Invalid password' }],
+        const newUser = new User({
+          telegramId: dto.telegramId,
+          username: dto.username,
+          referralCode: generateReferralCode(dto.telegramId),
         });
+
+        user = await newUser.save();
+
+        if (dto.code) {
+          const referrer = await User.findOne({
+            referralCode: dto.code,
+          });
+
+          user.referredBy = referrer?._id;
+          await user.save();
+        }
       }
 
-      const accessToken = signToken(user.id);
+      user.lastLogin = new Date();
+      await user.save();
 
-      // eslint-disable-next-line unused-imports/no-unused-vars
-      const { password: pw, ...returnUser } = user.toObject();
-      return res.status(HttpStatus.OK).json({ ...returnUser, accessToken });
+      const accessToken = signToken({
+        userId: user._id.toString(),
+        telegramId: user.telegramId,
+      });
+
+      return res.status(HttpStatus.OK).json({
+        token: {
+          accessToken,
+        },
+        user,
+      });
     } catch (error: any) {
       logger.error(error.message);
       next(error);
