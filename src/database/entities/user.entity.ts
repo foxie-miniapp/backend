@@ -7,6 +7,8 @@ interface IUser extends Document {
   // lastName?: string;
   // photoUrl?: string;
   points: number;
+  exp: number;
+  numberOfFoods: number;
   referralCode: string;
   referredBy?: mongoose.Types.ObjectId;
   createdAt: Date;
@@ -39,6 +41,16 @@ const userSchema = new mongoose.Schema<IUser>({
   // },
 
   points: {
+    default: 0,
+    type: Number,
+  },
+
+  exp: {
+    default: 0,
+    type: Number,
+  },
+
+  numberOfFoods: {
     default: 0,
     type: Number,
   },
