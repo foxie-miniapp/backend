@@ -1,3 +1,4 @@
+import Referral from 'src/database/entities/referral.entity';
 import User from 'src/database/entities/user.entity';
 import { generateReferralCode } from 'src/helpers/referral.helper';
 import { verifyTelegramId } from 'src/helpers/telegram.helper';
@@ -38,6 +39,12 @@ class AuthController {
           });
 
           user.referredBy = referrer?._id;
+          const referral = new Referral({
+            referrer: referrer?._id,
+            referred: user._id,
+          });
+
+          await referral.save();
           await user.save();
         }
       }

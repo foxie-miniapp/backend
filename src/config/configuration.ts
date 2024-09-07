@@ -9,6 +9,7 @@ class Config {
   DATABASE_URI = process.env.DATABASE_URI!;
   DATABASE_NAME = process.env.DATABASE_NAME!;
   TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
+  ADMIN_SECRET_TOKEN = process.env.ADMIN_SECRET_TOKEN!;
 }
 
 export const config = new Config();
