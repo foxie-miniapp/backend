@@ -1,10 +1,9 @@
-import Referral from 'src/database/entities/referral.entity';
 import User from 'src/database/entities/user.entity';
 import { generateReferralCode } from 'src/helpers/referral.helper';
-import { verifyTelegramId } from 'src/helpers/telegram.helper';
+import { questWorker } from 'src/jobs/quest.worker';
+import { referralWorker } from 'src/jobs/referral.worker';
 import { Validation } from 'src/shared/decorators/validation-pipe.decorator';
 import { CreateCredentialsDto } from 'src/shared/dtos/auth/create-credentials.dto';
-import { BadRequestException } from 'src/shared/exceptions';
 import { HttpStatus } from 'src/shared/exceptions/enums/http-status.enum';
 import { signToken } from 'src/utils/jwt';
 import { NextFunction, Request, Response } from 'express';
@@ -16,11 +15,11 @@ class AuthController {
   async login(req: Request, res: Response, next: NextFunction) {
     try {
       const dto = req.body as CreateCredentialsDto;
-      const isValidTelegramId = await verifyTelegramId(dto.telegramId);
+      // const isValidTelegramId = await verifyTelegramId(dto.telegramId);
 
-      if (!isValidTelegramId) {
-        next(new BadRequestException({ details: [{ issue: 'Invalid telegram id' }] }));
-      }
+      // if (!isValidTelegramId) {
+      //   next(new BadRequestException({ details: [{ issue: 'Invalid telegram id' }] }));
+      // }
 
       let user = await User.findOne({ telegramId: dto.telegramId });
 
@@ -33,19 +32,10 @@ class AuthController {
 
         user = await newUser.save();
 
+        await questWorker.addCreateUserQuestsTask(user._id.toString());
+
         if (dto.code) {
-          const referrer = await User.findOne({
-            referralCode: dto.code,
-          });
-
-          user.referredBy = referrer?._id;
-          const referral = new Referral({
-            referrer: referrer?._id,
-            referred: user._id,
-          });
-
-          await referral.save();
-          await user.save();
+          await referralWorker.addReferralTask(user._id.toString(), dto.code);
         }
       }
 

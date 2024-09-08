@@ -1,6 +1,7 @@
+import redisClient from 'src/config/redis-client';
 import Quest from 'src/database/entities/quest.entity';
-import User from 'src/database/entities/user.entity';
 import UserQuest, { QuestStatus } from 'src/database/entities/user-quest.entity';
+import { questWorker } from 'src/jobs/quest.worker';
 import { Admin, AdminAuthenticatedRequest } from 'src/shared/decorators/admin.decorator';
 import { Auth, AuthenticatedRequest } from 'src/shared/decorators/auth.decorator';
 import { Validation } from 'src/shared/decorators/validation-pipe.decorator';
@@ -19,18 +20,7 @@ class QuestController {
       const newQuest = new Quest(dto);
       await newQuest.save();
 
-      const users = await User.find({});
-
-      const userQuestPromises = users.map((user) => {
-        const userQuest = new UserQuest({
-          user: user._id,
-          quest: newQuest._id,
-          status: QuestStatus.IN_PROGRESS,
-        });
-        return userQuest.save();
-      });
-
-      await Promise.all(userQuestPromises);
+      await questWorker.addCreateUserQuestsForNewQuestTask(newQuest._id.toString());
 
       return res.status(HttpStatus.CREATED).json(newQuest);
     } catch (error) {
@@ -44,9 +34,10 @@ class QuestController {
       const userId = req.user.userId;
 
       const userQuests = await UserQuest.find({ user: userId }).populate('quest');
-      const quests = userQuests.map((userQuest) => {
+
+      const quests = userQuests.map((userQuest: any) => {
         return {
-          ...userQuest.quest,
+          ...userQuest.quest.toObject(),
           status: userQuest.status,
         };
       });
@@ -60,7 +51,7 @@ class QuestController {
   @Auth()
   async completeQuest(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
-      const { questId } = req.body;
+      const { questId } = req.params;
       const userId = req.user.userId;
 
       const quest = await Quest.findById(questId);
@@ -81,6 +72,31 @@ class QuestController {
       await userQuest.save();
 
       res.status(HttpStatus.OK).json({ message: 'Quest completed successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  @Auth()
+  async claimQuest(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { questId } = req.params;
+      const userId = req.user.userId;
+
+      const userQuest = (await UserQuest.findOne({ user: userId, quest: questId }).populate('quest')) as any;
+      if (!userQuest) {
+        return res.status(404).json({ message: 'Quest not found for this user' });
+      }
+
+      if (userQuest.status !== QuestStatus.COMPLETED) {
+        return res.status(400).json({ message: 'Quest not completed' });
+      }
+
+      await questWorker.addProcessQuestRewardsTask(userQuest._id.toString());
+      await redisClient.del(`userId:${userId}`);
+      res.status(HttpStatus.OK).json({
+        message: 'Quest claimed successfully',
+      });
     } catch (error) {
       next(error);
     }

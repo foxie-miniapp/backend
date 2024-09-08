@@ -12,7 +12,7 @@ export function Admin() {
     const originalMethod = descriptor.value;
 
     descriptor.value = function (req: AdminAuthenticatedRequest, res: Response, next: NextFunction) {
-      const adminToken = req.headers['X-Admin-Token'] as string;
+      const adminToken = req.headers['x-admin-token'] as string;
 
       if (!adminToken || adminToken !== config.ADMIN_SECRET_TOKEN) {
         return next(new UnauthorizedException({ details: [{ issue: 'Invalid admin token' }] }));

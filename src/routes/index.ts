@@ -6,6 +6,7 @@ import notFoundMiddleware from '../shared/middlewares/not-found.middleware';
 
 import auth from './auth.r';
 import pet from './pet.r';
+import quest from './quest.r';
 import users from './users.r';
 
 const initRoutes = (app: Express) => {
@@ -16,6 +17,7 @@ const initRoutes = (app: Express) => {
   v1Router.use('/auth', auth);
   v1Router.use('/users', users);
   v1Router.use('/pet', pet);
+  v1Router.use('/quest', quest);
 
   app.use('/api/v1', v1Router);
   app.use('*', notFoundMiddleware);

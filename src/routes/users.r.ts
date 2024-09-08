@@ -7,4 +7,6 @@ router.get('/me', usersController.findMe);
 
 router.post('/daily-reward', usersController.dailyReward);
 
+router.get('/leaderboard', usersController.getLeaderboard);
+
 export default router;

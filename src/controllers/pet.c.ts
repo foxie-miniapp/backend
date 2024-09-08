@@ -1,3 +1,4 @@
+import redisClient from 'src/config/redis-client';
 import User from 'src/database/entities/user.entity';
 import { Auth } from 'src/shared/decorators/auth.decorator';
 import { BadRequestException } from 'src/shared/exceptions';
@@ -28,6 +29,7 @@ class PetController {
         throw new HttpException([{ issue: 'Something went wrong' }], HttpStatus.INTERNAL_SERVER_ERROR, undefined);
       }
 
+      await redisClient.del(`userId:${userId}`);
       return res.status(HttpStatus.OK).json();
     } catch (error: unknown) {
       logger.error('Error in feedPet:', error instanceof Error ? error.message : 'Unknown error');

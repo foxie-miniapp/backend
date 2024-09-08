@@ -1,4 +1,4 @@
-import Bull from 'bull';
+import * as Bull from 'bull';
 
 type JobOptions = {
   attempts: number;

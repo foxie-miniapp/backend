@@ -27,6 +27,6 @@ const UserQuestSchema = new mongoose.Schema<IUserQuest>(
   { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
 );
 
-const UserQuest = mongoose.model<IUserQuest>('Quest', UserQuestSchema);
+const UserQuest = mongoose.model<IUserQuest>('UserQuest', UserQuestSchema);
 
 export default UserQuest;

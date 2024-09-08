@@ -10,6 +10,8 @@ class Config {
   DATABASE_NAME = process.env.DATABASE_NAME!;
   TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
   ADMIN_SECRET_TOKEN = process.env.ADMIN_SECRET_TOKEN!;
+  REDIS_HOST = process.env.REDIS_HOST!;
+  REDIS_PORT = +process.env.REDIS_PORT!;
 }
 
 export const config = new Config();

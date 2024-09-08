@@ -1,10 +1,24 @@
 import * as mongoose from 'mongoose';
 
 // Quest Interface
+
+export enum QuestLogo {
+  X = 'x,',
+  YOUTUBE = 'youtube',
+  INSTAGRAM = 'instagram',
+  TELEGRAM = 'telegram',
+}
+
+export enum QuestType {
+  SOCIAL = 'social',
+  ON_CHAIN = 'on-chain',
+}
+
 interface IQuest extends Document {
   title: string;
   description?: string;
-  logo?: string;
+  logo?: QuestLogo;
+  type: QuestType;
   pointsReward: number;
   url?: string;
   isActive: boolean;
@@ -19,7 +33,8 @@ const QuestSchema = new mongoose.Schema<IQuest>(
     pointsReward: { type: Number, required: true },
     isActive: { type: Boolean, default: true },
     url: { type: String },
-    logo: { type: String },
+    logo: { type: String, enum: Object.values(QuestLogo) },
+    type: { type: String, enum: Object.values(QuestType), default: QuestType.SOCIAL },
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
 );
