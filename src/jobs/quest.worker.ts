@@ -9,7 +9,8 @@ type TaskType =
   | 'CREATE_USER_QUESTS'
   | 'UPDATE_QUEST_STATUS'
   | 'PROCESS_QUEST_REWARDS'
-  | 'CREATE_USER_QUESTS_FOR_NEW_QUEST';
+  | 'CREATE_USER_QUESTS_FOR_NEW_QUEST'
+  | 'DELETE_USER_QUESTS_FOR_QUEST';
 
 interface QuestTask {
   type: TaskType;
@@ -46,6 +47,8 @@ class QuestWorker {
       case 'CREATE_USER_QUESTS_FOR_NEW_QUEST':
         await this.createUserQuestsForNewQuest(data.questId);
         break;
+      case 'DELETE_USER_QUESTS_FOR_QUEST':
+        await this.deleteUserQuestsForQuest(data.questId);
       default:
         throw new Error(`Unknown task type: ${type}`);
     }
@@ -138,6 +141,12 @@ class QuestWorker {
     console.log(`Processed rewards for UserQuest ${userQuestId}`);
   }
 
+  private async deleteUserQuestsForQuest(questId: string): Promise<void> {
+    await UserQuest.deleteMany({ quest: questId });
+
+    console.log(`Deleted UserQuest entries for quest: ${questId}`);
+  }
+
   // Public methods to add tasks to the queue
   async addCreateUserQuestsTask(userId: string): Promise<void> {
     await this.bullService.addTask({ type: 'CREATE_USER_QUESTS', data: { userId } });
@@ -153,6 +162,10 @@ class QuestWorker {
 
   async addCreateUserQuestsForNewQuestTask(questId: string): Promise<void> {
     await this.bullService.addTask({ type: 'CREATE_USER_QUESTS_FOR_NEW_QUEST', data: { questId } });
+  }
+
+  async addDeleteUserQuestsForQuestTask(questId: string): Promise<void> {
+    await this.bullService.addTask({ type: 'DELETE_USER_QUESTS_FOR_QUEST', data: { questId } });
   }
 }
 

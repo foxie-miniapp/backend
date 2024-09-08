@@ -101,6 +101,24 @@ class QuestController {
       next(error);
     }
   }
+
+  @Admin()
+  async deleteQuest(req: AdminAuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { questId } = req.params;
+
+      const quest = await Quest.findByIdAndDelete(questId);
+      if (!quest) {
+        next(new BadRequestException({ details: [{ issue: 'Quest not found' }] }));
+      }
+
+      await questWorker.addDeleteUserQuestsForQuestTask(questId);
+
+      res.status(HttpStatus.OK).json({ message: 'Quest deleted successfully' });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export default new QuestController();
