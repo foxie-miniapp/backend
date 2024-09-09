@@ -14,6 +14,25 @@ export class CreateCredentialsDto {
 
   @IsString()
   @IsNotEmpty()
+  initData: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  firstName?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @IsOptional()
+  lastName?: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsOptional()
+  photoUrl?: string;
+
+  @IsString()
+  @IsNotEmpty()
   @IsOptional()
   code?: string;
 }

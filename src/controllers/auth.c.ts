@@ -1,11 +1,11 @@
+import { validate } from '@telegram-apps/init-data-node';
+import { config } from 'src/config/configuration';
 import User from 'src/database/entities/user.entity';
 import { generateReferralCode } from 'src/helpers/referral.helper';
-import { verifyTelegramId } from 'src/helpers/telegram.helper';
 import { questWorker } from 'src/jobs/quest.worker';
 import { referralWorker } from 'src/jobs/referral.worker';
 import { Validation } from 'src/shared/decorators/validation-pipe.decorator';
 import { CreateCredentialsDto } from 'src/shared/dtos/auth/create-credentials.dto';
-import { BadRequestException } from 'src/shared/exceptions';
 import { HttpStatus } from 'src/shared/exceptions/enums/http-status.enum';
 import { signToken } from 'src/utils/jwt';
 import { NextFunction, Request, Response } from 'express';
@@ -17,18 +17,20 @@ class AuthController {
   async login(req: Request, res: Response, next: NextFunction) {
     try {
       const dto = req.body as CreateCredentialsDto;
-      const isValidTelegramId = await verifyTelegramId(dto.telegramId);
+      validate(dto.initData, config.TELEGRAM_BOT_TOKEN);
 
-      if (!isValidTelegramId) {
-        next(new BadRequestException({ details: [{ issue: 'Invalid telegram id' }] }));
-      }
+      let firstLogin = false;
 
       let user = await User.findOne({ telegramId: dto.telegramId });
 
       if (!user) {
+        firstLogin = true;
         const newUser = new User({
           telegramId: dto.telegramId,
           username: dto.username,
+          firstName: dto.firstName || '',
+          lastName: dto.lastName || '',
+          photoUrl: dto.photoUrl || '',
           referralCode: generateReferralCode(dto.telegramId),
         });
 
@@ -54,6 +56,7 @@ class AuthController {
           accessToken,
         },
         user,
+        firstLogin,
       });
     } catch (error: any) {
       logger.error(error.message);

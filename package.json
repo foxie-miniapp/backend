@@ -47,6 +47,7 @@
         "typescript": "^5.4.2"
     },
     "dependencies": {
+        "@telegram-apps/init-data-node": "^1.0.4",
         "@types/ioredis": "^5.0.0",
         "axios": "^1.6.7",
         "bcrypt": "^5.1.1",

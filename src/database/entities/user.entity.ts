@@ -3,9 +3,9 @@ import * as mongoose from 'mongoose';
 interface IUser extends Document {
   telegramId: string;
   username: string;
-  // firstName?: string;
-  // lastName?: string;
-  // photoUrl?: string;
+  firstName?: string;
+  lastName?: string;
+  photoUrl?: string;
   points: number;
   exp: number;
   numberOfFoods: number;
@@ -29,17 +29,17 @@ const userSchema = new mongoose.Schema<IUser>(
       type: String,
     },
 
-    // firtName: {
-    //   type: String,
-    // },
+    firstName: {
+      type: String,
+    },
 
-    // lastName: {
-    //   type: String,
-    // },
+    lastName: {
+      type: String,
+    },
 
-    // photoUrl: {
-    //   type: String,
-    // },
+    photoUrl: {
+      type: String,
+    },
 
     exp: {
       default: 0,

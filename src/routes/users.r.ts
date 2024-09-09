@@ -9,4 +9,6 @@ router.post('/daily-reward', usersController.dailyReward);
 
 router.get('/leaderboard', usersController.getLeaderboard);
 
+router.get('/referents', usersController.getReferents);
+
 export default router;

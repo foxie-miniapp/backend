@@ -102,6 +102,20 @@ class UsersController {
       next(error);
     }
   }
+
+  @Auth()
+  async getReferents(req: CustomUserRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user?.userId;
+
+      const referents = await User.find({ referredBy: userId });
+
+      return res.status(HttpStatus.OK).json(referents);
+    } catch (error: any) {
+      logger.error('Error in findMe:', error.message);
+      next(error);
+    }
+  }
 }
 
 export default new UsersController();

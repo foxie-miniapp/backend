@@ -7,11 +7,13 @@ export enum QuestLogo {
   YOUTUBE = 'youtube',
   INSTAGRAM = 'instagram',
   TELEGRAM = 'telegram',
+  DISCORD = 'discord',
 }
 
 export enum QuestType {
-  SOCIAL = 'social',
-  ON_CHAIN = 'on-chain',
+  LINK = 'link',
+  JOIN_TELEGRAM = 'join_telegram',
+  ON_CHAIN = 'on_chain',
 }
 
 interface IQuest extends Document {
@@ -34,7 +36,7 @@ const QuestSchema = new mongoose.Schema<IQuest>(
     isActive: { type: Boolean, default: true },
     url: { type: String },
     logo: { type: String, enum: Object.values(QuestLogo) },
-    type: { type: String, enum: Object.values(QuestType), default: QuestType.SOCIAL },
+    type: { type: String, enum: Object.values(QuestType), default: QuestType.LINK },
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
 );
