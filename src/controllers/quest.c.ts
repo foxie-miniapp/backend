@@ -1,6 +1,7 @@
 import redisClient from 'src/config/redis-client';
-import Quest from 'src/database/entities/quest.entity';
+import Quest, { QuestType } from 'src/database/entities/quest.entity';
 import UserQuest, { QuestStatus } from 'src/database/entities/user-quest.entity';
+import { checkJoinGroupTelegram } from 'src/helpers/telegram.helper';
 import { questWorker } from 'src/jobs/quest.worker';
 import { Admin, AdminAuthenticatedRequest } from 'src/shared/decorators/admin.decorator';
 import { Auth, AuthenticatedRequest } from 'src/shared/decorators/auth.decorator';
@@ -66,6 +67,14 @@ class QuestController {
 
       if (userQuest.status === QuestStatus.COMPLETED || userQuest.status === QuestStatus.CLAIMED) {
         next(new BadRequestException({ details: [{ issue: 'Quest already completed or claimed' }] }));
+      }
+
+      if (quest.type === QuestType.JOIN_GROUP_TELEGRAM) {
+        const isJoined = await checkJoinGroupTelegram(quest.telegramGroupId, req.user.telegramId);
+
+        if (!isJoined) {
+          next(new BadRequestException({ details: [{ issue: 'Not joined telegram group' }] }));
+        }
       }
 
       userQuest.status = QuestStatus.COMPLETED;

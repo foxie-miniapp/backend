@@ -12,7 +12,7 @@ export enum QuestLogo {
 
 export enum QuestType {
   LINK = 'link',
-  JOIN_TELEGRAM = 'join_telegram',
+  JOIN_GROUP_TELEGRAM = 'join_group_telegram',
   ON_CHAIN = 'on_chain',
 }
 
@@ -23,6 +23,7 @@ interface IQuest extends Document {
   type: QuestType;
   pointsReward: number;
   url?: string;
+  telegramGroupId?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -37,6 +38,7 @@ const QuestSchema = new mongoose.Schema<IQuest>(
     url: { type: String },
     logo: { type: String, enum: Object.values(QuestLogo) },
     type: { type: String, enum: Object.values(QuestType), default: QuestType.LINK },
+    telegramGroupId: { type: String },
   },
   { timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' } }
 );

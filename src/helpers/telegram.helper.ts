@@ -1,4 +1,5 @@
 import axios from 'axios';
+import * as TelegramBot from 'node-telegram-bot-api';
 import { config } from 'src/config/configuration';
 
 export async function verifyTelegramId(telegramId: string): Promise<boolean> {
@@ -17,4 +18,16 @@ export async function verifyTelegramId(telegramId: string): Promise<boolean> {
   }
 
   return false;
+}
+
+export async function checkJoinGroupTelegram(telegramGroupId: string, telegramUserId: string) {
+  const bot = new TelegramBot(config.TELEGRAM_BOT_TOKEN, { polling: false });
+
+  const chatMember = await bot.getChatMember(telegramGroupId, Number(telegramUserId));
+
+  if (['member', 'administrator', 'creator'].includes(chatMember.status)) {
+    return true;
+  } else {
+    return false;
+  }
 }
