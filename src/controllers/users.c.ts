@@ -2,6 +2,8 @@ import redisClient from 'src/config/redis-client';
 import DailyReward from 'src/database/entities/daily-reward.entity';
 import User from 'src/database/entities/user.entity';
 import { Auth } from 'src/shared/decorators/auth.decorator';
+import { Validation } from 'src/shared/decorators/validation-pipe.decorator';
+import { UpdateUserDto } from 'src/shared/dtos/user/update-user.dto';
 import { BadRequestException, NotFoundException } from 'src/shared/exceptions';
 import { HttpStatus } from 'src/shared/exceptions/enums/http-status.enum';
 import { CustomUserRequest } from 'src/shared/interfaces/request.interface';
@@ -134,6 +136,28 @@ class UsersController {
       });
     } catch (error: any) {
       logger.error('Error in findMe:', error.message);
+      next(error);
+    }
+  }
+
+  @Auth()
+  @Validation(UpdateUserDto)
+  async updateWalletAddress(req: CustomUserRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user?.userId;
+      const { walletAddress } = req.body;
+
+      if (!walletAddress) {
+        throw new BadRequestException({ details: [{ issue: 'Wallet address is required' }] });
+      }
+
+      const user = await User.findOneAndUpdate({ _id: userId }, { walletAddress }, { new: true });
+
+      await redisClient.del(`userId:${userId}`);
+
+      return res.status(HttpStatus.OK).json(user);
+    } catch (error: any) {
+      logger.error('Error in updateWalletAddress:', error.message);
       next(error);
     }
   }

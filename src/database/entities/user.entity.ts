@@ -11,6 +11,7 @@ interface IUser extends Document {
   numberOfFoods: number;
   referralCode: string;
   referredBy?: mongoose.Types.ObjectId;
+  walletAddress?: string;
   createdAt: Date;
   updatedAt: Date;
   lastLogin: Date;
@@ -60,6 +61,10 @@ const userSchema = new mongoose.Schema<IUser>(
       required: true,
       type: String,
       unique: true,
+    },
+
+    walletAddress: {
+      type: String,
     },
 
     referredBy: {
