@@ -1,5 +1,6 @@
 import redisClient from 'src/config/redis-client';
 import Quest, { QuestType } from 'src/database/entities/quest.entity';
+import User from 'src/database/entities/user.entity';
 import UserQuest, { QuestStatus } from 'src/database/entities/user-quest.entity';
 import { checkJoinGroupTelegram } from 'src/helpers/telegram.helper';
 import { questWorker } from 'src/jobs/quest.worker';
@@ -51,6 +52,7 @@ class QuestController {
 
   @Auth()
   async completeQuest(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    const txh = req.body?.txh;
     try {
       const { questId } = req.params;
       const userId = req.user.userId;
@@ -75,6 +77,24 @@ class QuestController {
         if (!isJoined) {
           next(new BadRequestException({ details: [{ issue: 'Not joined telegram group' }] }));
         }
+      }
+
+      if (quest.type === QuestType.ON_CHAIN && txh) {
+        const user = await User.findById(userId);
+
+        if (!user || !user?.walletAddress) {
+          next(new BadRequestException({ details: [{ issue: 'User not found or wallet address not set' }] }));
+        }
+
+        // const client = new TonClient({
+        //   endpoint: config.TON_API_URL,
+        // });
+
+        // const tx = await client.getTransaction(Address.parse(user.walletAddress), );
+
+        // if (!tx || tx.inMessage.info.dest.toString() !== user.walletAddress) {
+        //   next(new BadRequestException({ details: [{ issue: 'Transaction not found or invalid' }] }));
+        // }
       }
 
       userQuest.status = QuestStatus.COMPLETED;

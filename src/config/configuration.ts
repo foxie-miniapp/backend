@@ -12,6 +12,7 @@ class Config {
   ADMIN_SECRET_TOKEN = process.env.ADMIN_SECRET_TOKEN!;
   REDIS_HOST = process.env.REDIS_HOST!;
   REDIS_PORT = +process.env.REDIS_PORT!;
+  TON_API_URL = process.env.TON_API_URL!;
 }
 
 export const config = new Config();
