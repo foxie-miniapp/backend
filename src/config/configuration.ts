@@ -13,6 +13,7 @@ class Config {
   REDIS_HOST = process.env.REDIS_HOST!;
   REDIS_PORT = +process.env.REDIS_PORT!;
   REDIS_PASSWORD = process.env.REDIS_PASSWORD!;
+  TON_API_URL = process.env.TON_API_URL!;
 }
 
 export const config = new Config();

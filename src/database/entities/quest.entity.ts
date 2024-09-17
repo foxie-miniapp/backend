@@ -8,6 +8,7 @@ export enum QuestLogo {
   INSTAGRAM = 'instagram',
   TELEGRAM = 'telegram',
   DISCORD = 'discord',
+  TON = 'ton',
 }
 
 export enum QuestType {

@@ -2,6 +2,8 @@ import redisClient from 'src/config/redis-client';
 import DailyReward from 'src/database/entities/daily-reward.entity';
 import User from 'src/database/entities/user.entity';
 import { Auth } from 'src/shared/decorators/auth.decorator';
+import { Validation } from 'src/shared/decorators/validation-pipe.decorator';
+import { UpdateUserDto } from 'src/shared/dtos/user/update-user.dto';
 import { BadRequestException, NotFoundException } from 'src/shared/exceptions';
 import { HttpStatus } from 'src/shared/exceptions/enums/http-status.enum';
 import { CustomUserRequest } from 'src/shared/interfaces/request.interface';
@@ -106,13 +108,56 @@ class UsersController {
   @Auth()
   async getReferents(req: CustomUserRequest, res: Response, next: NextFunction) {
     try {
+      const page = parseInt(req.query.page as string, 10) || 1;
+      const limit = parseInt(req.query.limit as string, 10) || 10;
+      const skip = (page - 1) * limit;
       const userId = req.user?.userId;
 
-      const referents = await User.find({ referredBy: userId });
+      const referents = await User.find(
+        { referredBy: userId },
+        {
+          username: 1,
+          points: 1,
+          photoUrl: 1,
+        }
+      )
+        .skip(skip)
+        .limit(limit)
+        .exec();
 
-      return res.status(HttpStatus.OK).json(referents);
+      return res.status(HttpStatus.OK).json({
+        data: referents,
+        pagination: {
+          currentPage: page,
+          limit,
+          totalPages: Math.ceil(referents.length / limit),
+          totalItems: referents.length,
+        },
+      });
     } catch (error: any) {
       logger.error('Error in findMe:', error.message);
+      next(error);
+    }
+  }
+
+  @Auth()
+  @Validation(UpdateUserDto)
+  async updateWalletAddress(req: CustomUserRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user?.userId;
+      const { walletAddress } = req.body;
+
+      if (!walletAddress) {
+        throw new BadRequestException({ details: [{ issue: 'Wallet address is required' }] });
+      }
+
+      const user = await User.findOneAndUpdate({ _id: userId }, { walletAddress }, { new: true });
+
+      await redisClient.del(`userId:${userId}`);
+
+      return res.status(HttpStatus.OK).json(user);
+    } catch (error: any) {
+      logger.error('Error in updateWalletAddress:', error.message);
       next(error);
     }
   }

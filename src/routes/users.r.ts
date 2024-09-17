@@ -11,4 +11,6 @@ router.get('/leaderboard', usersController.getLeaderboard);
 
 router.get('/referents', usersController.getReferents);
 
+router.put('/address', usersController.updateWalletAddress);
+
 export default router;
