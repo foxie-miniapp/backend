@@ -5,6 +5,7 @@ import { config } from './configuration';
 export const redisClient = new Redis({
   port: Number(config.REDIS_PORT),
   host: String(config.REDIS_HOST),
+  password: String(config.REDIS_PASSWORD),
 });
 
 redisClient.on('connect', () => {
