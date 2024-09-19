@@ -52,6 +52,22 @@ class UsersController {
       const today = new Date().toISOString().slice(0, 10);
       const dailyReward = await DailyReward.findOne({ userId: userId, date: today });
 
+      return res.status(HttpStatus.OK).json({
+        claimed: dailyReward ? true : false,
+      });
+    } catch (error: any) {
+      logger.error('Error in findMe:', error.message);
+      next(error);
+    }
+  }
+  @Auth()
+  async claimDailyReward(req: CustomUserRequest, res: Response, next: NextFunction) {
+    try {
+      const userId = req.user.userId;
+
+      const today = new Date().toISOString().slice(0, 10);
+      const dailyReward = await DailyReward.findOne({ userId: userId, date: today });
+
       if (dailyReward) {
         throw new BadRequestException({ details: [{ issue: 'Already claimed' }] });
       }

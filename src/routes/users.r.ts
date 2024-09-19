@@ -5,7 +5,9 @@ import usersController from '../controllers/users.c';
 
 router.get('/me', usersController.findMe);
 
-router.post('/daily-reward', usersController.dailyReward);
+router.post('/daily-reward', usersController.claimDailyReward);
+
+router.get('/daily-reward', usersController.dailyReward);
 
 router.get('/leaderboard', usersController.getLeaderboard);
 
