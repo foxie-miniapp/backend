@@ -94,25 +94,46 @@ class UsersController {
   @Auth()
   async getLeaderboard(req: CustomUserRequest, res: Response, next: NextFunction) {
     try {
-      const page = parseInt(req.query.page as string, 10) || 1;
-      const limit = parseInt(req.query.limit as string, 10) || 10;
-      const skip = (page - 1) * limit;
       const userId = req.user?.userId;
 
       const [leaderboard, total, currentUser] = await Promise.all([
-        User.find({}, 'username points').sort({ points: -1, username: 1 }).skip(skip).limit(limit).exec(),
+        User.find(
+          {},
+          {
+            username: 1,
+            points: 1,
+            photoUrl: 1,
+            firstName: 1,
+            lastName: 1,
+          }
+        )
+          .sort({ points: -1, username: 1 })
+          .limit(100)
+          .exec(),
         User.countDocuments(),
-        User.findById(userId, 'username points').exec(),
+        User.findById(userId, {
+          username: 1,
+          points: 1,
+          photoUrl: 1,
+          firstName: 1,
+          lastName: 1,
+        }).exec(),
       ]);
+
+      let currentUserRank = null;
+      if (currentUser) {
+        currentUserRank = await User.countDocuments({
+          points: { $gt: currentUser.points },
+        });
+        currentUserRank += 1; // Rank is 1-based, so add 1
+      }
 
       return res.status(HttpStatus.OK).json({
         data: leaderboard,
-        user: currentUser,
-        pagination: {
-          currentPage: page,
-          limit,
-          totalPages: Math.ceil(total / limit),
-          totalItems: total,
+        total,
+        user: {
+          ...currentUser?.toObject(),
+          rank: currentUserRank,
         },
       });
     } catch (error: any) {
@@ -133,6 +154,8 @@ class UsersController {
         { referredBy: userId },
         {
           username: 1,
+          firstName: 1,
+          lastName: 1,
           points: 1,
           photoUrl: 1,
         }
