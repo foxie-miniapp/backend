@@ -145,9 +145,6 @@ class UsersController {
   @Auth()
   async getReferents(req: CustomUserRequest, res: Response, next: NextFunction) {
     try {
-      const page = parseInt(req.query.page as string, 10) || 1;
-      const limit = parseInt(req.query.limit as string, 10) || 10;
-      const skip = (page - 1) * limit;
       const userId = req.user?.userId;
 
       const referents = await User.find(
@@ -159,22 +156,11 @@ class UsersController {
           points: 1,
           photoUrl: 1,
         }
-      )
-        .skip(skip)
-        .limit(limit)
-        .exec();
+      ).exec();
 
-      return res.status(HttpStatus.OK).json({
-        data: referents,
-        pagination: {
-          currentPage: page,
-          limit,
-          totalPages: Math.ceil(referents.length / limit),
-          totalItems: referents.length,
-        },
-      });
+      return res.status(HttpStatus.OK).json(referents);
     } catch (error: any) {
-      logger.error('Error in findMe:', error.message);
+      logger.error('Error: ', error.message);
       next(error);
     }
   }

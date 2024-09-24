@@ -5,6 +5,7 @@ import * as mongoose from 'mongoose';
 export enum QuestLogo {
   X = 'x,',
   YOUTUBE = 'youtube',
+  FACEBOOK = 'facebook',
   INSTAGRAM = 'instagram',
   TELEGRAM = 'telegram',
   DISCORD = 'discord',
@@ -13,6 +14,7 @@ export enum QuestLogo {
 
 export enum QuestType {
   LINK = 'link',
+  INVITE_FRIEND = 'invite_friend',
   JOIN_GROUP_TELEGRAM = 'join_group_telegram',
   ON_CHAIN = 'on_chain',
 }

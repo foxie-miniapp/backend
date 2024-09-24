@@ -1,7 +1,9 @@
 import * as Bull from 'bull';
 import { config } from 'src/config/configuration';
+import Quest, { QuestType } from 'src/database/entities/quest.entity';
 import Referral from 'src/database/entities/referral.entity';
 import User from 'src/database/entities/user.entity';
+import UserQuest, { QuestStatus } from 'src/database/entities/user-quest.entity';
 import { BullService } from 'src/shared/bull/bull-service';
 
 interface ReferralTask {
@@ -45,6 +47,24 @@ class ReferralWorker {
         referred: user._id,
       });
       await referral.save();
+
+      const referrerReferrals = await Referral.find({ referrer: referrer._id });
+
+      if (referrerReferrals.length === 5) {
+        const quest = await Quest.findOne({ type: QuestType.INVITE_FRIEND });
+
+        const userQuest = await UserQuest.findOne({
+          user: referrer._id,
+          quest: quest._id,
+        });
+
+        if (userQuest.status === QuestStatus.COMPLETED || userQuest.status === QuestStatus.CLAIMED) {
+          return;
+        }
+
+        userQuest.status = QuestStatus.COMPLETED;
+        await userQuest.save();
+      }
 
       console.log(`Processed referral for user ${userId} with referral code ${referralCode}`);
     } catch (error) {
