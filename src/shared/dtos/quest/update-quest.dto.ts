@@ -1,10 +1,11 @@
 import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 import { QuestLogo, QuestType } from 'src/database/entities/quest.entity';
 
-export class CreateQuestDto {
+export class UpdateQuestDto {
   @IsString()
   @IsNotEmpty()
-  title: string;
+  @IsOptional()
+  title?: string;
 
   @IsString()
   @IsOptional()
@@ -20,10 +21,11 @@ export class CreateQuestDto {
 
   @IsString()
   @IsOptional()
-  type: QuestType;
+  type?: QuestType;
 
   @IsNumber()
-  pointsReward: number;
+  @IsOptional()
+  pointsReward?: number;
 
   @IsString()
   @IsOptional()

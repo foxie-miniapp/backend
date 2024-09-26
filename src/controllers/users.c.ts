@@ -1,6 +1,8 @@
 import redisClient from 'src/config/redis-client';
 import DailyReward from 'src/database/entities/daily-reward.entity';
+import Quest, { QuestType } from 'src/database/entities/quest.entity';
 import User from 'src/database/entities/user.entity';
+import UserQuest, { QuestStatus } from 'src/database/entities/user-quest.entity';
 import { Auth } from 'src/shared/decorators/auth.decorator';
 import { Validation } from 'src/shared/decorators/validation-pipe.decorator';
 import { UpdateUserDto } from 'src/shared/dtos/user/update-user.dto';
@@ -176,7 +178,23 @@ class UsersController {
         throw new BadRequestException({ details: [{ issue: 'Wallet address is required' }] });
       }
 
-      const user = await User.findOneAndUpdate({ _id: userId }, { walletAddress }, { new: true });
+      const user = await User.findOne({ _id: userId });
+
+      if (!user) {
+        throw new NotFoundException({ details: [{ issue: 'User not found' }] });
+      }
+
+      if (!user.walletAddress && walletAddress) {
+        const quest = await Quest.findOne({ type: QuestType.CONNECT_WALLET });
+
+        const userQuest = await UserQuest.findOne({ user: userId, quest: quest?._id });
+
+        userQuest.status = QuestStatus.COMPLETED;
+        await userQuest.save();
+      }
+
+      user.walletAddress = walletAddress;
+      await user.save();
 
       await redisClient.del(`userId:${userId}`);
 

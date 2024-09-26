@@ -15,6 +15,7 @@ export enum QuestLogo {
 export enum QuestType {
   LINK = 'link',
   INVITE_FRIEND = 'invite_friend',
+  CONNECT_WALLET = 'connect_wallet',
   JOIN_GROUP_TELEGRAM = 'join_group_telegram',
   ON_CHAIN = 'on_chain',
 }
@@ -25,6 +26,7 @@ interface IQuest extends Document {
   logo?: QuestLogo;
   type: QuestType;
   pointsReward: number;
+  priority: number;
   url?: string;
   telegramGroupId?: string;
   isActive: boolean;
@@ -38,6 +40,7 @@ const QuestSchema = new mongoose.Schema<IQuest>(
     description: { type: String },
     pointsReward: { type: Number, required: true },
     isActive: { type: Boolean, default: true },
+    priority: { type: Number, default: 0 },
     url: { type: String },
     logo: { type: String, enum: Object.values(QuestLogo) },
     type: { type: String, enum: Object.values(QuestType), default: QuestType.LINK },

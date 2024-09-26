@@ -8,8 +8,10 @@ import { Admin, AdminAuthenticatedRequest } from 'src/shared/decorators/admin.de
 import { Auth, AuthenticatedRequest } from 'src/shared/decorators/auth.decorator';
 import { Validation } from 'src/shared/decorators/validation-pipe.decorator';
 import { CreateQuestDto } from 'src/shared/dtos/quest/create-quest.dto';
+import { UpdateQuestDto } from 'src/shared/dtos/quest/update-quest.dto';
 import { BadRequestException } from 'src/shared/exceptions';
 import { HttpStatus } from 'src/shared/exceptions/enums/http-status.enum';
+import logger from 'src/utils/logger';
 import { NextFunction, Response } from 'express';
 
 class QuestController {
@@ -30,19 +32,42 @@ class QuestController {
     }
   }
 
+  @Admin()
+  @Validation(UpdateQuestDto)
+  async updateQuest(req: AdminAuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { questId } = req.params;
+      const dto = req.body as UpdateQuestDto;
+
+      const quest = await Quest.findByIdAndUpdate(questId, dto, { new: true });
+      if (!quest) {
+        next(new BadRequestException({ details: [{ issue: 'Quest not found' }] }));
+      }
+
+      return res.status(HttpStatus.OK).json(quest);
+    } catch (error) {
+      logger.error(error);
+      next(error);
+    }
+  }
+
   @Auth()
   async getQuests(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const userId = req.user.userId;
 
-      const userQuests = await UserQuest.find({ user: userId }).populate('quest');
-
-      const quests = userQuests.map((userQuest: any) => {
-        return {
-          ...userQuest.quest.toObject(),
-          status: userQuest.status,
-        };
+      const userQuests = await UserQuest.find({ user: userId }).populate({
+        path: 'quest',
       });
+
+      const quests = userQuests
+        .map((userQuest: any) => {
+          return {
+            ...userQuest.quest.toObject(),
+            status: userQuest.status,
+          };
+        })
+        .sort((a, b) => b.priority - a.priority);
 
       res.status(HttpStatus.OK).json(quests);
     } catch (error) {
