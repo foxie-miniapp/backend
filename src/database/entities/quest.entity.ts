@@ -3,7 +3,7 @@ import * as mongoose from 'mongoose';
 // Quest Interface
 
 export enum QuestLogo {
-  X = 'x,',
+  X = 'x',
   YOUTUBE = 'youtube',
   FACEBOOK = 'facebook',
   INSTAGRAM = 'instagram',
